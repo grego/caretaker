@@ -19,6 +19,11 @@ On a change in the `path`, it executes the `command`. Directories are watched re
 Using [notify](https://github.com/notify-rs/notify) crate, which provides efficient event handling 
 support for the most operating systems (apart from BSD).
 
+## Installing
+```
+cargo install caretaker
+```
+
 ## Running
 Initialising with a dummy `.watch.toml` file:
 ```
