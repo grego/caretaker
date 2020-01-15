@@ -1,0 +1,9 @@
+[[watch]]
+# What the command does?
+name = "print hello"
+# Where to look for changes?
+path = "src"
+# What to execute on change?
+command = "echo \"hello world\""
+
+# Repeat this to watch multiple paths

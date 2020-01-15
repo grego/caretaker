@@ -1,0 +1,26 @@
+[package]
+name = "caretaker"
+version = "0.1.0"
+authors = ["Maroš Grego <maros@grego.site>"]
+edition = "2018"
+description = "A simple, configurable filesystem watcher"
+repository = "https://github.com/grego/caretaker"
+keywords = ["fsevenst", "notify", "inotify", "watcher"]
+categories = ["command-line-utilities","development-tools"]
+license = "MIT"
+
+[dependencies]
+toml = "^0.5.5"
+notify = "^5.0.0-pre.2"
+serde = { version = "^1.0.104", features = ["derive"] }
+structopt = "^0.3.7"
+crossbeam-channel = "0.4.0"
+ansi_term = "0.12.1"
+
+[badges]
+travis-ci = { repository = "grego/caretaker" }
+is-it-maintained-open-issues = { repository = "grego/caretaker" }
+maintenance = { status = "passively-maintained" }
+
+[profile.release]
+lto = true
