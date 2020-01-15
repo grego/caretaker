@@ -1,14 +1,14 @@
 [package]
 name = "caretaker"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Maroš Grego <maros@grego.site>"]
 edition = "2018"
 description = "A simple, configurable filesystem watcher"
 repository = "https://github.com/grego/caretaker"
-documentation = "https://github.com/grego/caretaker"
 keywords = ["fsevents", "notify", "inotify", "watcher"]
 categories = ["command-line-utilities","development-tools"]
 license = "MIT"
+readme = "README.md"
 
 [dependencies]
 toml = "^0.5.5"
