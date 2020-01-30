@@ -43,7 +43,7 @@ pub fn watch(config: Config) -> Result<(), Error> {
                     if let Err(e) = command
                         .lock()
                         .map_err(|e| e.into())
-                        .and_then(|mut c| c.spawn().map_err(|e| e.into()))
+                        .and_then(|mut c| c.status().map_err(|e| e.into()))
                     {
                         tx.send(e).unwrap();
                     }
