@@ -1,8 +1,9 @@
 pub mod command;
 pub mod watch;
+pub mod error;
 
 use ansi_term::Style;
-use notify::Error;
+use error::Error;
 use structopt::StructOpt;
 use watch::watch;
 
@@ -26,7 +27,7 @@ enum Cmd {
 }
 
 const DUMMY: &str = "[[watch]]
-# What the command does?
+# What does the command do?
 name = \"print hello\"
 # Where to look for changes?
 path = \"src\"
@@ -52,8 +53,12 @@ fn main() -> Result<(), Error> {
         _ => {
             let config = std::fs::read(&opt.watch_config)?;
             match toml::from_slice(&config) {
-                Ok(config) => watch(config)?,
-                Err(e) => println!("Unable to parse {}: {}", bold.paint(&opt.watch_config), e),
+                Ok(config) => {
+                    watch(config)?;
+                }
+                Err(e) => {
+                    println!("Unable to parse {}: {}", bold.paint(&opt.watch_config), e);
+                }
             };
         }
     }

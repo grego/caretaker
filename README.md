@@ -11,10 +11,11 @@ command = "echo \"hello world\""
 
 [[watch]]
 name = "compile sass"
-path = "sass"
+path = "sass/*.sass"
 command = "sassc -t compressed sass/style.scss static/style.css"
 ```
 On a change in the `path`, it executes the `command`. Directories are watched recursively.
+Paths can also be specified with [globs](https://docs.rs/glob/0.3.0/glob/struct.Pattern.html).
 
 Using [notify](https://github.com/notify-rs/notify) crate, which provides efficient event handling 
 support for the most operating systems (apart from BSD).
