@@ -5,6 +5,7 @@ authors = ["Maroš Grego <maros@grego.site>"]
 edition = "2018"
 description = "A simple, configurable filesystem watcher"
 repository = "https://github.com/grego/caretaker"
+homepage = "https://github.com/grego/caretaker"
 keywords = ["fsevents", "notify", "inotify", "watcher"]
 categories = ["command-line-utilities","development-tools"]
 license = "MIT"

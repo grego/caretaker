@@ -21,6 +21,10 @@ Using [notify](https://github.com/notify-rs/notify) crate, which provides effici
 support for the most operating systems (apart from BSD).
 
 ## Installing
+Currently, Caretaker is available on [AUR](https://aur.archlinux.org/packages/caretaker-bin/). You can
+install it with some AUR helper, like `yay -S caretaker-bin`.
+
+If you have Rust toolchain installed, you can install it with Cargo:
 ```
 cargo install caretaker
 ```
