@@ -4,6 +4,6 @@ name = "print hello"
 # Where to look for changes?
 path = "src"
 # What to execute on change?
-command = "echo \"hello world\""
+command = "echo \"hello $EVENT_PATH\""
 
 # Repeat this to watch multiple paths

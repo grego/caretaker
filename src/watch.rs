@@ -1,30 +1,46 @@
-use crate::command::Command;
 use crate::Error;
 
 use ansi_term::Style;
 use crossbeam_channel::unbounded;
 use glob::Pattern;
 use notify::{immediate_watcher, RecursiveMode, Watcher};
+use parking_lot::Mutex;
 use serde::Deserialize;
 
 use std::convert::Infallible;
 use std::path::{is_separator, Path};
-use std::sync::Mutex;
+use std::process::Command;
 
+#[cfg(target_family = "unix")]
+pub(crate) static SHELL: &str = "sh";
+#[cfg(target_family = "unix")]
+static ARGUMENT: &str = "-c";
+#[cfg(target_family = "windows")]
+pub(crate) static SHELL: &str = "cmd";
+#[cfg(target_family = "windows")]
+static ARGUMENT: &str = "/c";
+
+/// One path to watch
 #[derive(Deserialize)]
-struct Watch {
+pub struct Watch {
+    /// A name of the action to do on the path change.
     #[serde(default)]
-    name: String,
-    path: String,
-    command: Mutex<Command>,
+    pub name: String,
+    /// The path to watch for change.
+    pub path: String,
+    /// The command to execute on path change.
+    pub command: String,
 }
 
+/// The config file of Caretaker
 #[derive(Deserialize)]
 pub struct Config {
-    watch: Vec<Watch>,
+    /// A list of paths and commands to watch.
+    pub watch: Vec<Watch>,
 }
 
-pub fn watch(config: Config) -> Result<Infallible, Error> {
+/// Watch the paths specified in the config, executing the commands using the provided shell.
+pub fn watch(config: Config, shell: &str) -> Result<Infallible, Error> {
     use notify::event::{EventKind::*, *};
 
     let len = config.watch.len();
@@ -33,6 +49,8 @@ pub fn watch(config: Config) -> Result<Infallible, Error> {
     let bold = Style::new().bold();
 
     let is_glob = |c| c == '*' || c == '?' || c == '[';
+    let matches =
+        |pattern: &Pattern, path: &Path| path.to_str().map(|s| pattern.matches(s)).unwrap_or(false);
 
     for Watch {
         name,
@@ -61,31 +79,34 @@ pub fn watch(config: Config) -> Result<Infallible, Error> {
             None
         };
 
+        let mut cmd = Command::new(shell);
+        cmd.args(&[ARGUMENT, &command]);
+        let command = Mutex::new(cmd);
+
         let mut watcher = immediate_watcher(move |res: Result<Event, _>| match res {
             Ok(Event { kind, paths, .. }) => match kind {
                 Access(AccessKind::Close(AccessMode::Write))
                 | Create(_)
                 | Modify(ModifyKind::Name(RenameMode::To))
                 | Remove(_) => {
-                    let matches_glob = glob
-                        .as_ref()
-                        .map(|pattern| {
-                            paths.iter().any(|path| {
-                                path.to_str().map(|s| pattern.matches(s)).unwrap_or(false)
-                            })
-                        })
-                        .unwrap_or(true);
-                    if !matches_glob {
-                        return;
-                    }
+                    for path in &paths {
+                        if !glob
+                            .as_ref()
+                            .map(|pattern| matches(pattern, path))
+                            .unwrap_or(true)
+                        {
+                            return;
+                        }
 
-                    println!("{:?} changed, running {}", &paths, bold.paint(&name));
-                    if let Err(e) = command
-                        .lock()
-                        .map_err(|e| e.into())
-                        .and_then(|mut c| c.status().map_err(|e| e.into()))
-                    {
-                        tx.send(e).unwrap();
+                        println!("{:?} changed, running {}", path, bold.paint(&name));
+                        if let Err(e) = command
+                            .lock()
+                            .env("EVENT_PATH", path)
+                            .status()
+                            .map_err(|e| e.into())
+                        {
+                            tx.send(e).unwrap();
+                        }
                     }
                 }
                 _ => {}
