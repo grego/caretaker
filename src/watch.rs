@@ -86,7 +86,6 @@ pub fn watch(config: Config, shell: &str) -> Result<Infallible, Error> {
         let mut watcher = immediate_watcher(move |res: Result<Event, _>| match res {
             Ok(Event { kind, paths, .. }) => match kind {
                 Access(AccessKind::Close(AccessMode::Write))
-                | Create(_)
                 | Modify(ModifyKind::Name(RenameMode::To))
                 | Remove(_) => {
                     for path in &paths {
