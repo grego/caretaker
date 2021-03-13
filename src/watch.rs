@@ -115,7 +115,9 @@ pub fn watch(config: Config, shell: &str) -> Result<Infallible, Error> {
                 tx.send(e).unwrap();
             }
         })?;
-        watcher.watch(&path, RecursiveMode::Recursive)?;
+        watcher
+            .watch(&path, RecursiveMode::Recursive)
+            .map_err(|source| Error::PathWatch { source, path })?;
         watchers.push(watcher);
     }
 

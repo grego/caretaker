@@ -65,7 +65,7 @@ command = \"echo $EVENT_PATH\"
 
 # Repeat this to watch multiple paths";
 
-fn main() -> Result<(), Error> {
+fn main() {
     let opt = Opt::from_args();
 
     let bold = Style::new().bold();
@@ -74,24 +74,28 @@ fn main() -> Result<(), Error> {
             let config = &opt.config;
             if std::fs::metadata(config).is_ok() {
                 println!("{} already exists, exiting", bold.paint(config))
+            } else if let Err(e) = std::fs::write(config, DUMMY) {
+                eprintln!("Error writing config file {}: {}", config, e);
             } else {
-                std::fs::write(config, DUMMY)?;
-                println!("{} created!", bold.paint(config))
+                println!("{} created!", bold.paint(config));
             }
         }
         _ => {
-            let config = std::fs::read(&opt.config)?;
+            let config = match std::fs::read(&opt.config) {
+                Ok(cfg) => cfg,
+                Err(e) => return eprintln!("Error writing config file {}: {}", &opt.config, e),
+            };
             match toml::from_slice(&config) {
                 Ok(config) => {
                     let shell = opt.shell.or_else(|| env::var("SHELL").ok());
-                    watch(config, shell.as_deref().unwrap_or(SHELL))?;
+                    if let Err(e) = watch(config, shell.as_deref().unwrap_or(SHELL)) {
+                        eprintln!("{}", e);
+                    }
                 }
                 Err(e) => {
-                    println!("Unable to parse {}: {}", bold.paint(&opt.config), e);
+                    eprintln!("Unable to parse {}: {}", bold.paint(&opt.config), e);
                 }
             };
         }
     }
-
-    Ok(())
 }
