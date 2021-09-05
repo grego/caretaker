@@ -3,7 +3,7 @@ use crate::Error;
 use ansi_term::Style;
 use crossbeam_channel::unbounded;
 use glob::Pattern;
-use notify::{immediate_watcher, RecursiveMode, Watcher};
+use notify::{recommended_watcher, RecursiveMode, Watcher};
 use parking_lot::Mutex;
 use serde::Deserialize;
 
@@ -14,11 +14,11 @@ use std::process::Command;
 #[cfg(target_family = "unix")]
 pub(crate) static SHELL: &str = "sh";
 #[cfg(target_family = "unix")]
-static ARGUMENT: &str = "-c";
+pub(crate) static ARGUMENT: &str = "-c";
 #[cfg(target_family = "windows")]
 pub(crate) static SHELL: &str = "cmd";
 #[cfg(target_family = "windows")]
-static ARGUMENT: &str = "/c";
+pub(crate) static ARGUMENT: &str = "/c";
 
 /// One path to watch
 #[derive(Deserialize)]
@@ -40,7 +40,7 @@ pub struct Config {
 }
 
 /// Watch the paths specified in the config, executing the commands using the provided shell.
-pub fn watch(config: Config, shell: &str) -> Result<Infallible, Error> {
+pub fn watch(config: Config, shell: &str, arg: &str) -> Result<Infallible, Error> {
     use notify::event::{EventKind::*, *};
 
     let len = config.watch.len();
@@ -80,10 +80,10 @@ pub fn watch(config: Config, shell: &str) -> Result<Infallible, Error> {
         };
 
         let mut cmd = Command::new(shell);
-        cmd.args(&[ARGUMENT, &command]);
+        cmd.args(&[arg, &command]);
         let command = Mutex::new(cmd);
 
-        let mut watcher = immediate_watcher(move |res: Result<Event, _>| match res {
+        let mut watcher = recommended_watcher(move |res: Result<Event, _>| match res {
             Ok(Event { kind, paths, .. }) => match kind {
                 Access(AccessKind::Close(AccessMode::Write))
                 | Modify(ModifyKind::Name(RenameMode::To))
@@ -115,7 +115,7 @@ pub fn watch(config: Config, shell: &str) -> Result<Infallible, Error> {
             }
         })?;
         watcher
-            .watch(&path, RecursiveMode::Recursive)
+            .watch(path.as_ref(), RecursiveMode::Recursive)
             .map_err(|source| Error::PathWatch { source, path })?;
         watchers.push(watcher);
     }

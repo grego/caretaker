@@ -27,7 +27,7 @@ mod watch;
 pub use error::Error;
 pub use watch::{watch, Config, Watch};
 
-use watch::SHELL;
+use watch::{ARGUMENT, SHELL};
 
 use ansi_term::Style;
 use std::env;
@@ -43,6 +43,9 @@ struct Opt {
     /// Shell to parse and execute the commands with
     #[structopt(short, long)]
     shell: Option<String>,
+    /// Command marker argument, such as "-c", to pass to the current shell
+    #[structopt(long, allow_hyphen_values = true)]
+    arg: Option<String>,
     #[structopt(subcommand)]
     cmd: Option<Cmd>,
 }
@@ -88,7 +91,12 @@ fn main() {
             match toml::from_slice(&config) {
                 Ok(config) => {
                     let shell = opt.shell.or_else(|| env::var("SHELL").ok());
-                    if let Err(e) = watch(config, shell.as_deref().unwrap_or(SHELL)) {
+                    let arg = opt.arg.or_else(|| env::var("CARETAKER_ARG").ok());
+                    if let Err(e) = watch(
+                        config,
+                        shell.as_deref().unwrap_or(SHELL),
+                        arg.as_deref().unwrap_or(ARGUMENT),
+                    ) {
                         eprintln!("{}", e);
                     }
                 }
