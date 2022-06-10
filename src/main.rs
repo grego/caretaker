@@ -30,11 +30,11 @@ pub use watch::{watch, Config, Watch};
 use watch::{ARGUMENT, SHELL};
 
 use ansi_term::Style;
+use clap::Parser;
 use std::env;
-use structopt::StructOpt;
 
-#[derive(StructOpt)]
-#[structopt(rename_all = "kebab-case")]
+#[derive(clap_derive::Parser)]
+#[clap(version, about, rename_all = "kebab-case")]
 /// A simple, configurable filesystem watcher
 struct Opt {
     /// File to read what to watch from
@@ -50,7 +50,7 @@ struct Opt {
     cmd: Option<Cmd>,
 }
 
-#[derive(StructOpt)]
+#[derive(clap_derive::Subcommand)]
 enum Cmd {
     /// Create a dummy .watch.toml file
     Init,
@@ -69,7 +69,7 @@ command = \"echo $EVENT_PATH\"
 # Repeat this to watch multiple paths";
 
 fn main() {
-    let opt = Opt::from_args();
+    let opt: Opt = Parser::parse();
 
     let bold = Style::new().bold();
     match opt.cmd {
