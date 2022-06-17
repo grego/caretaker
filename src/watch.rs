@@ -4,12 +4,11 @@ use ansi_term::Style;
 use crossbeam_channel::unbounded;
 use glob::Pattern;
 use notify::{recommended_watcher, RecursiveMode, Watcher};
-use parking_lot::Mutex;
 use serde::Deserialize;
 
 use std::convert::Infallible;
 use std::path::{is_separator, Path};
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 #[cfg(target_family = "unix")]
 pub(crate) static SHELL: &str = "sh";
@@ -80,8 +79,7 @@ pub fn watch(config: Config, shell: &str, arg: &str) -> Result<Infallible, Error
         };
 
         let mut cmd = Command::new(shell);
-        cmd.args(&[arg, &command]);
-        let command = Mutex::new(cmd);
+        cmd.args(&[arg, &command]).stdin(Stdio::null());
 
         let mut watcher = recommended_watcher(move |res: Result<Event, _>| match res {
             Ok(Event { kind, paths, .. }) => match kind {
@@ -98,13 +96,8 @@ pub fn watch(config: Config, shell: &str, arg: &str) -> Result<Infallible, Error
                         }
 
                         println!("{:?} changed, running {}", path, bold.paint(&name));
-                        if let Err(e) = command
-                            .lock()
-                            .env("EVENT_PATH", path)
-                            .status()
-                            .map_err(|e| e.into())
-                        {
-                            tx.send(e).unwrap();
+                        if let Err(e) = cmd.env("EVENT_PATH", path).status() {
+                            tx.send(e.into()).unwrap();
                         }
                     }
                 }

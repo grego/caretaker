@@ -1,6 +1,6 @@
 [package]
 name = "caretaker"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["Maroš Grego <maros@grego.site>"]
 edition = "2018"
 description = "A simple, configurable filesystem watcher"
@@ -18,10 +18,10 @@ serde = { version = "^1.0.130", features = ["derive"] }
 clap = { version = "3", default_features = false, features = ["std"] }
 clap_derive = "3"
 crossbeam-channel = "0.5.4"
-parking_lot = "0.12"
 ansi_term = "0.12.1"
 glob = "0.3"
 custom_error = "1.9.2"
 
 [profile.release]
-lto = true
+lto = "fat"
+strip = "debuginfo"
