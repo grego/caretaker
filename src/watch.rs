@@ -1,6 +1,6 @@
 use crate::Error;
 
-use ansi_term::Style;
+use nu_ansi_term::Style;
 use crossbeam_channel::unbounded;
 use glob::Pattern;
 use notify::{recommended_watcher, RecursiveMode, Watcher};

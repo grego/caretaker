@@ -29,7 +29,7 @@ pub use watch::{watch, Config, Watch};
 
 use watch::{ARGUMENT, SHELL};
 
-use ansi_term::Style;
+use nu_ansi_term::Style;
 use clap::Parser;
 use std::env;
 
